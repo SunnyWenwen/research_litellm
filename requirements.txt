@@ -1,0 +1,10 @@
+litellm[proxy]>=1.55.0
+openai>=1.55.0
+boto3>=1.28.57
+botocore>=1.31.57
+google-cloud-aiplatform>=1.38.0
+google-auth>=2.23.0
+azure-identity>=1.15.0
+python-dotenv>=1.0.0
+httpx>=0.25.0
+pyyaml>=6.0.1
