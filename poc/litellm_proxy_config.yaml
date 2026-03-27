@@ -1,0 +1,105 @@
+# LiteLLM Proxy 配置
+# 用途：APISIX ai-proxy-multi → LiteLLM Proxy → 各雲端供應商
+# 啟動方式：litellm --config poc/litellm_proxy_config.yaml --port 4000
+
+model_list:
+  # GCP Vertex AI - Gemini 2.5 Flash
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: ${VERTEXAI_PROJECT}
+      vertex_location: ${VERTEXAI_LOCATION}
+    model_info:
+      id: gemini-2.5-flash-us-central1
+      region_name: us-central1
+
+  # Vertex AI 多區域備援（亞洲）
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: ${VERTEXAI_PROJECT}
+      vertex_location: asia-northeast1
+    model_info:
+      id: gemini-2.5-flash-asia-northeast1
+      region_name: asia-northeast1
+
+  # GCP Vertex AI - Gemini 2.5 Pro
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: vertex_ai/gemini-2.5-pro
+      vertex_project: ${VERTEXAI_PROJECT}
+      vertex_location: ${VERTEXAI_LOCATION}
+    model_info:
+      id: gemini-2.5-pro-primary
+
+  # AWS Bedrock - Claude Sonnet 4.5
+  - model_name: claude-sonnet-4-5
+    litellm_params:
+      model: bedrock/anthropic.claude-sonnet-4-5-20251001-v1:0
+      aws_region_name: ${AWS_REGION_NAME}
+      aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    model_info:
+      id: claude-sonnet-4-5-us-east-1
+      region_name: us-east-1
+
+  # Bedrock 跨區域推論（US）
+  - model_name: claude-sonnet-4-5
+    litellm_params:
+      model: bedrock/us.anthropic.claude-sonnet-4-5-20251001-v1:0
+      aws_region_name: us-east-1
+      aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    model_info:
+      id: claude-sonnet-4-5-cross-region-us
+      region_name: us-east-1
+
+  # Azure OpenAI - GPT-5.1
+  - model_name: azure-gpt-5-1
+    litellm_params:
+      model: azure/${AZURE_DEPLOYMENT_NAME}
+      api_base: ${AZURE_API_BASE}
+      api_key: ${AZURE_API_KEY}
+      api_version: ${AZURE_API_VERSION}
+    model_info:
+      id: azure-gpt-5-1-primary
+
+  # Azure 備援部署
+  - model_name: azure-gpt-5-1
+    litellm_params:
+      model: azure/${AZURE_DEPLOYMENT_NAME_2}
+      api_base: ${AZURE_API_BASE_2}
+      api_key: ${AZURE_API_KEY_2}
+      api_version: ${AZURE_API_VERSION}
+    model_info:
+      id: azure-gpt-5-1-secondary
+
+  # Azure Responses API
+  - model_name: azure-responses
+    litellm_params:
+      model: azure/responses/${AZURE_DEPLOYMENT_NAME}
+      api_base: ${AZURE_API_BASE}
+      api_key: ${AZURE_API_KEY}
+      api_version: ${AZURE_API_VERSION}
+    model_info:
+      id: azure-responses-api
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 3
+  retry_after: 0
+  timeout: 60
+  fallback_models:
+    gemini-2.5-flash:
+      - claude-sonnet-4-5
+  # redis_host: ${REDIS_HOST}
+  # redis_port: ${REDIS_PORT}
+  # redis_password: ${REDIS_PASSWORD}
+
+general_settings:
+  master_key: ${LITELLM_MASTER_KEY}
+  store_model_in_db: true
+
+litellm_settings:
+  request_timeout: 60
+  drop_params: false
